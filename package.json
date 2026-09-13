@@ -11,7 +11,8 @@
     "test": "npm test -w pipeline",
     "dev:api": "npm run dev -w backend",
     "dev:web": "npm run dev -w frontend",
-    "build": "npm run build -w frontend",
+    "build": "node -e \"console.log('Skip compile on Render. Start the API with npm run start -w backend. Build the UI on Vercel.')\"",
+    "build:web": "npm run build -w frontend",
     "start": "npm run start -w backend"
   },
   "engines": {

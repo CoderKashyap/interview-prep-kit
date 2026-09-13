@@ -137,8 +137,8 @@ Deterministic scoring: must-linked questions outrank nice-to-haves; higher diffi
 Free tiers are expected. Do not commit `.env`.
 
 1. MongoDB Atlas — `MONGODB_URI` must start with `mongodb://` or `mongodb+srv://`.
-2. Backend (Render or Railway) from the repo root. Build: `npm install --include=dev`. Start: `npm run start -w backend`. Do not run `tsc` on Render. Set `NODE_ENV=production`, `JWT_SECRET`, `GEMINI_API_KEY`, `CLIENT_ORIGIN` to the frontend URL, `ALLOW_PRIVATE_URLS=false`.
-3. Frontend (Vercel), root directory `frontend`, `NEXT_PUBLIC_API_URL` set to the public API origin.
+2. Backend (Render or Railway) from the **repo root**. Root directory must be empty (not `frontend`). Build: `npm install --include=dev`. Start: `npm run start -w backend`. Do not run `next build` or `tsc` on Render. Set `NODE_ENV=production`, `JWT_SECRET`, `GEMINI_API_KEY`, `CLIENT_ORIGIN` to the frontend URL, `ALLOW_PRIVATE_URLS=false`.
+3. Frontend (Vercel only), root directory `frontend`, `NEXT_PUBLIC_API_URL` set to the public API origin.
 4. Confirm frontend and backend are both reachable.
 
 `render.yaml` describes the API service.
