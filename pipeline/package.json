@@ -7,18 +7,18 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node -e \"console.log('pipeline: tsx runs TypeScript, no tsc emit')\"",
     "evaluate": "tsx src/evaluate.ts",
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
+    "@types/node": "^22.10.2",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
+    "tsx": "^4.19.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }
 }

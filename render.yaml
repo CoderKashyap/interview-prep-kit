@@ -3,7 +3,7 @@ services:
     name: interview-prep-api
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build -w pipeline && npm run build -w backend
+    buildCommand: npm install --include=dev
     startCommand: npm run start -w backend
     envVars:
       - key: NODE_ENV

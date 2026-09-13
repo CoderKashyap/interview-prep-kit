@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "node -e \"console.log('backend: tsx runs TypeScript, no tsc emit')\"",
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -24,8 +26,6 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.2",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }
 }

@@ -11,7 +11,8 @@
     "test": "npm test -w pipeline",
     "dev:api": "npm run dev -w backend",
     "dev:web": "npm run dev -w frontend",
-    "build": "npm run build -w pipeline && npm run build -w backend && npm run build -w frontend"
+    "build": "npm run build -w frontend",
+    "start": "npm run start -w backend"
   },
   "engines": {
     "node": ">=20"
