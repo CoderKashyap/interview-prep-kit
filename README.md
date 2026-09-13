@@ -73,7 +73,7 @@ Generation is a background job (`pending → researching → generating → chec
 2. Fetch the homepage. Skip and record 404s, timeouts, unexpected content types, and oversized bodies.
 3. Honour `robots.txt` for our user agent.
 4. Read links from the whole page, including nav and footer.
-5. Rank links by hiring and about signals. Stay on the same company (`gitlab.com` and `about.gitlab.com` count as one) and follow that company's job-board host when the URL includes the company name. Paths are not hard-coded.
+5. Rank **discovered** links by hiring and about signals. Stay on the same company (sibling hosts count). Off-site links are followed only if they look like hiring **and** name that company. No guessed paths or guessed ATS URLs.
 6. Crawl a second hop from about/jobs pages so a product homepage can still reach hiring content.
 7. Search DuckDuckGo HTML for public interview discussion. If nothing useful is found, the kit says so.
 

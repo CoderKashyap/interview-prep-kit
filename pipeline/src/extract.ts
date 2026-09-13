@@ -14,7 +14,7 @@ export interface ExtractedRole {
 
 const KIND_FROM_TEXT: Array<[RegExp, RequirementKind]> = [
   [/mentor|stakeholder|communicat|lead|collaborat|influenc|team/i, "behavioural"],
-  [/domain|industry|healthcare|fintech|marketplace|compliance/i, "domain"],
+  [/domain|industry|compliance/i, "domain"],
 ];
 
 const JUNK_REQUIREMENT = [
@@ -27,7 +27,7 @@ const JUNK_REQUIREMENT = [
 ];
 
 const SKILL_SIGNAL =
-  /experience|years|\d+\+|proficien|architect|design|mentor|debug|build|operate|scale|availab|throughput|on-call|ci\/?cd|test|infra|monolith|event|pipeline|api|ruby|rails|go\b|golang|python|node|java|kotlin|react|postgres|sql|kubernetes|kafka|redis|graphql|aws|gcp|azure|backend|frontend|distributed|reliability|observab|workflow/i;
+  /experience|years|\d+\+|proficien|architect|design|mentor|debug|build|operate|scale|availab|throughput|on-call|ci\/?cd|test|infra|monolith|event|pipeline|api|sql|backend|frontend|distributed|reliability|observab|workflow|skill|knowledge|familiar/i;
 
 function inferKind(text: string): RequirementKind {
   for (const [pattern, kind] of KIND_FROM_TEXT) {

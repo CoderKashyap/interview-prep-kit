@@ -1,13 +1,12 @@
 import type { FetchedPage } from "./fetchPage.js";
 
-const NAV_NOISE =
-  /log ?in|sign ?in|password|cookie|close to search|duo agent|suggestions gitlab|register|privacy/i;
+const CHROME_NOISE = /log ?in|sign ?in|password|cookie|privacy|register|subscribe/i;
 
 function proseFromText(text: string): string {
   const cleaned = text.replace(/\s+/g, " ").trim();
   const parts = cleaned.split(/(?<=[.!?])\s+/).filter((sentence) => {
     if (sentence.length < 50) return false;
-    if (NAV_NOISE.test(sentence)) return false;
+    if (CHROME_NOISE.test(sentence) && sentence.length < 120) return false;
     return true;
   });
   return parts.slice(0, 4).join(" ").slice(0, 700);
@@ -16,16 +15,16 @@ function proseFromText(text: string): string {
 function pageScore(page: FetchedPage): number {
   const haystack = `${page.url} ${page.title}`;
   let score = Math.min(page.text.length / 200, 8);
-  if (/about|company|handbook|mission|what-we/i.test(haystack)) score += 12;
-  if (/jobs|login|careers|pricing|signup/i.test(haystack)) score -= 5;
+  if (/about|company|handbook|mission/i.test(haystack)) score += 12;
+  if (/login|pricing|signup/i.test(haystack)) score -= 5;
   return score;
 }
 
 export function looksLikeNavDump(text: string): boolean {
   const trimmed = text.replace(/\s+/g, " ").trim();
   if (trimmed.length < 40) return true;
-  if (NAV_NOISE.test(trimmed) && !(trimmed.match(/[.!?]/g) ?? []).length) return true;
   const sentences = (trimmed.match(/[.!?]/g) ?? []).length;
+  if (CHROME_NOISE.test(trimmed) && sentences === 0) return true;
   return sentences === 0 && trimmed.split(/\s+/).length > 12;
 }
 

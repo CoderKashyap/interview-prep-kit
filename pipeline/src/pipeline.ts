@@ -81,7 +81,7 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
   }
 
   const hiringNotes = pages
-    .filter((page) => /hire|career|interview|handbook|jobs|greenhouse/i.test(`${page.url} ${page.title}`))
+    .filter((page) => /hire|career|interview|handbook|jobs/i.test(`${page.url} ${page.title}`))
     .map((page) => page.text.slice(0, 1600))
     .join("\n");
 

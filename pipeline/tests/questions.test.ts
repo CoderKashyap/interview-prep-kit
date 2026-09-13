@@ -12,14 +12,14 @@ test("questions are interviewer prompts, not JD pastes", () => {
   });
   const question = buildQuestion(requirement, "technical");
   assert.equal(/demonstrate this requirement/i.test(question.prompt), false);
-  assert.equal(question.prompt.includes(requirement.text), false);
+  assert.match(question.prompt, /Walk through a production example/);
   assert.match(question.prompt, /Rails monolith|event/i);
 });
 
 test("flashcard fronts are study questions", () => {
   const requirement = req({ id: "r1", text: "Architect for high availability and throughput." });
   const cards = generateFlashcards([requirement], []);
-  assert.equal(cards[0].front, `How would you explain ${topicLabel(requirement.text)} in an interview?`);
+  assert.equal(cards[0].front, `How would you talk about this in an interview: ${topicLabel(requirement.text)}?`);
   assert.notEqual(cards[0].front, requirement.text);
 });
 

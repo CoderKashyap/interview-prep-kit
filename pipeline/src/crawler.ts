@@ -1,6 +1,6 @@
 import { fetchPage, sleep, type FetchedPage } from "./fetchPage.js";
 import { parseRobots } from "./robots.js";
-import { companySlug, isInCrawlScope, registrableDomain, resolveLink, urlKey } from "./urls.js";
+import { isInCrawlScope, resolveLink, urlKey } from "./urls.js";
 import type { ResearchNotes } from "./types.js";
 
 const HIRING_PATTERNS = [
@@ -15,7 +15,6 @@ const HIRING_PATTERNS = [
   /recruit/i,
   /openings/i,
   /talent/i,
-  /all-jobs/i,
 ];
 
 const ABOUT_PATTERNS = [
@@ -54,8 +53,7 @@ export function scoreLink(url: string, anchorText = ""): number {
   }
   try {
     const parsed = new URL(url);
-    if (parsed.hostname.startsWith("about.")) score += 6;
-    if (/\/(jobs?|careers?|handbook|hiring)\b/i.test(parsed.pathname)) score += 10;
+    if (/jobs?|careers?|handbook|hiring/i.test(parsed.pathname)) score += 10;
   } catch {
     /* ignore */
   }
@@ -129,21 +127,6 @@ export async function crawlCompanySite(
 
   enqueue(home, 1);
 
-  if (!frontier.some((item) => scoreLink(item.url) >= 5)) {
-    try {
-      const root = registrableDomain(new URL(home.url).hostname);
-      const slug = companySlug(companyUrl);
-      if (root && !isLoopbackLike(root)) {
-        frontier.push({ url: `https://about.${root}/`, score: 8, depth: 1 });
-        if (slug) {
-          frontier.push({ url: `https://job-boards.greenhouse.io/${slug}/`, score: 7, depth: 1 });
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
   while (pages.length < MAX_PAGES) {
     frontier.sort((a, b) => b.score - a.score);
     const next = frontier.find((item) => !seen.has(urlKey(item.url)) && item.depth <= MAX_DEPTH);
@@ -173,10 +156,6 @@ export async function crawlCompanySite(
   }
 
   return { pages, notes };
-}
-
-function isLoopbackLike(host: string): boolean {
-  return host === "localhost" || host.endsWith(".localhost") || host === "127.0.0.1";
 }
 
 export function pagesToContext(pages: FetchedPage[], limit = 9000): string {

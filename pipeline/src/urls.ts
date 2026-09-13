@@ -111,15 +111,6 @@ const MULTI_PART_TLDS = new Set([
   "com.mx",
 ]);
 
-const ATS_HOSTS = [
-  /greenhouse\.io$/i,
-  /lever\.co$/i,
-  /ashbyhq\.com$/i,
-  /myworkdayjobs\.com$/i,
-  /smartrecruiters\.com$/i,
-  /icims\.com$/i,
-];
-
 export function registrableDomain(hostname: string): string {
   const host = hostname.replace(/^\[|\]$/g, "").toLowerCase().replace(/\.$/, "");
   if (!host || isLoopbackHost(host) || isIP(host) !== 0) return host;
@@ -148,22 +139,23 @@ export function sameRegistrableOrigin(a: string, b: string): boolean {
   }
 }
 
-export function isCompanyJobBoard(target: string, companyUrl: string): boolean {
+/** Off-site only if we discovered a hiring-looking URL that names this company. */
+export function isDiscoveredHiringLink(target: string, companyUrl: string): boolean {
   try {
     const dest = new URL(target);
     const slug = companySlug(companyUrl);
-    if (!slug || slug === "localhost") return false;
-    if (!ATS_HOSTS.some((pattern) => pattern.test(dest.hostname))) return false;
+    if (!slug || slug === "localhost" || slug.length < 3) return false;
     const haystack = `${dest.hostname}${dest.pathname}`.toLowerCase();
+    if (!/job|career|hiring|opening|recruit/i.test(haystack)) return false;
     return haystack.includes(slug);
   } catch {
     return false;
   }
 }
 
-/** Same company (gitlab.com ↔ about.gitlab.com) or that company's ATS job board. */
+/** Same registrable company, or a hiring URL we actually found that names them. */
 export function isInCrawlScope(target: string, companyUrl: string): boolean {
-  return sameRegistrableOrigin(companyUrl, target) || isCompanyJobBoard(target, companyUrl);
+  return sameRegistrableOrigin(companyUrl, target) || isDiscoveredHiringLink(target, companyUrl);
 }
 
 export function urlKey(raw: string): string {
