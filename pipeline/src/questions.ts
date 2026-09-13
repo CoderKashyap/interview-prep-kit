@@ -52,18 +52,22 @@ export function buildQuestion(req: Requirement, category: QuestionCategory): Pic
   }
   return {
     prompt: `Walk through a production example of ${topic}. What broke or scaled poorly, and how did you prove the fix?`,
-    answer_outline:
-      "Name the system, the constraint, the change you made, and the metric. Mention one pitfall interviewers will probe (coupling, data loss, or operability).",
+    answer_outline: studyAnswer(req),
     difficulty,
   };
 }
 
+export function studyAnswer(req: Requirement): string {
+  const topic = topicLabel(req.text);
+  const fact = req.text.replace(/\s+/g, " ").trim().slice(0, 220);
+  return `${fact} Then tell one story about ${topic}: the system you touched, what was hard, what you changed, and a number (p99, error rate, or time-to-deliver).`;
+}
+
 export function buildFlashcard(req: Requirement, related?: Question): { front: string; back: string } {
   const topic = topicLabel(req.text);
+  const generic = /name the system, the constraint/i.test(related?.answer_outline ?? "");
   return {
     front: `How would you explain ${topic} in an interview?`,
-    back:
-      related?.answer_outline ||
-      `${req.text.slice(0, 180)} Use one example, one trade-off, and one metric.`,
+    back: !generic && related?.answer_outline ? related.answer_outline : studyAnswer(req),
   };
 }

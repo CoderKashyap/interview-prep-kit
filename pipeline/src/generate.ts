@@ -1,4 +1,5 @@
 import type { FetchedPage } from "./fetchPage.js";
+import { briefFromPages, looksLikeNavDump } from "./brief.js";
 import { pagesToContext } from "./crawler.js";
 import { allocateIds, nextId } from "./ids.js";
 import { ISOLATION_PREAMBLE, generateJson, hasLlmCredentials } from "./llm.js";
@@ -11,7 +12,6 @@ export async function generateCompanyBrief(input: {
   pages: FetchedPage[];
   discussionSnippets: string[];
 }): Promise<{ summary: string; what_they_do: string; sources: string[] }> {
-  const sources = [...input.pages.map((p) => p.url), ...[]].filter(Boolean);
   const context = pagesToContext(input.pages);
   const discussion = input.discussionSnippets.join("\n\n").slice(0, 2500);
 
@@ -23,14 +23,8 @@ export async function generateCompanyBrief(input: {
     };
   }
 
-  if (!hasLlmCredentials()) {
-    const first = input.pages.find((p) => p.text)?.text.slice(0, 400) ?? "";
-    return {
-      summary: first || `Public pages were found at ${input.companyUrl}, but no model was available to summarise them.`,
-      what_they_do: first ? first.slice(0, 280) : "Unknown — retrieved text was not summarised.",
-      sources: input.pages.map((p) => p.url),
-    };
-  }
+  const fallback = briefFromPages(input.pages, input.companyUrl, input.companyName);
+  if (!hasLlmCredentials()) return fallback;
 
   try {
     const data = await generateJson<{ summary?: string; what_they_do?: string }>([
@@ -40,6 +34,7 @@ export async function generateCompanyBrief(input: {
         content: [
           `Write an honest company brief for ${input.companyName || "the company"} at ${input.companyUrl}.`,
           "Use only the retrieved pages and discussion snippets. If hiring process details appear, mention them.",
+          "Write 2-4 full sentences. Do not paste navigation, login, or cookie text.",
           "If evidence is thin, say so. Do not invent products or culture.",
           'JSON: { "summary": "", "what_they_do": "" }',
           "",
@@ -51,17 +46,15 @@ export async function generateCompanyBrief(input: {
         ].join("\n"),
       },
     ]);
+    const summary = data.summary?.trim() || fallback.summary;
+    const what = data.what_they_do?.trim() || fallback.what_they_do;
     return {
-      summary: data.summary?.trim() || "The retrieved pages did not support a confident summary.",
-      what_they_do: data.what_they_do?.trim() || "Not stated in the retrieved sources.",
+      summary: looksLikeNavDump(summary) ? fallback.summary : summary,
+      what_they_do: looksLikeNavDump(what) ? fallback.what_they_do : what,
       sources: input.pages.map((p) => p.url),
     };
   } catch {
-    return {
-      summary: `Retrieved ${input.pages.length} page(s) from the company site, but summarisation failed. Treat the sources as the brief.`,
-      what_they_do: input.pages.find((p) => p.text)?.text.slice(0, 280) || "Unknown.",
-      sources,
-    };
+    return fallback;
   }
 }
 
