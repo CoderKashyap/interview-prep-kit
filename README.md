@@ -53,7 +53,7 @@ These cover schedule allocation, coverage checking, Appendix A structure validat
 ## LLM
 
 - Provider: Google Gemini
-- Model: `gemini-2.0-flash` (override with `GEMINI_MODEL`)
+- Model: `gemini-flash-latest` (override with `GEMINI_MODEL`). Older ids such as `gemini-2.0-flash` now return 404.
 - Fallback: Groq `llama-3.1-8b-instant` if `GROQ_API_KEY` is set and Gemini is not
 - Free-tier rate limits are handled with exponential backoff and jitter. Invalid JSON is retried. If the model is unavailable, extraction and question generation fall back to deterministic helpers that only reuse text already in the posting — they do not invent requirements.
 

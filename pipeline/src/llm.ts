@@ -37,7 +37,7 @@ async function callGemini(messages: LlmMessage[], model: string, apiKey: string)
     }),
   });
 
-  if (response.status === 429 || response.status >= 500) {
+  if (response.status === 404 || response.status === 429 || response.status >= 500) {
     const err = new Error(`Gemini ${response.status}`);
     (err as Error & { retryable: boolean }).retryable = true;
     throw err;
@@ -79,6 +79,12 @@ async function callGroq(messages: LlmMessage[], model: string, apiKey: string): 
   return data.choices?.[0]?.message?.content ?? "";
 }
 
+function geminiModels(): string[] {
+  const preferred = process.env.GEMINI_MODEL?.trim();
+  const defaults = ["gemini-flash-latest", "gemini-3.6-flash", "gemini-2.5-flash"];
+  return [...new Set([preferred, ...defaults].filter((name): name is string => Boolean(name)))];
+}
+
 export function hasLlmCredentials(): boolean {
   return Boolean(process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY);
 }
@@ -92,11 +98,7 @@ export async function generateJson<T>(messages: LlmMessage[]): Promise<T> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
       const text = process.env.GEMINI_API_KEY
-        ? await callGemini(
-            messages,
-            process.env.GEMINI_MODEL || (attempt === 1 ? "gemini-2.0-flash" : "gemini-2.5-flash"),
-            process.env.GEMINI_API_KEY,
-          )
+        ? await callGemini(messages, geminiModels()[Math.min(attempt - 1, geminiModels().length - 1)], process.env.GEMINI_API_KEY)
         : await callGroq(messages, process.env.GROQ_MODEL || "llama-3.1-8b-instant", process.env.GROQ_API_KEY as string);
       return extractJson(text) as T;
     } catch (error) {
