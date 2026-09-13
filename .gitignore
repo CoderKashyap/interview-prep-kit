@@ -1,0 +1,14 @@
+node_modules
+dist
+.next
+.env
+.env.local
+*.log
+coverage
+.DS_Store
+.vercel
+backend/uploads
+samples/kits.json
+frontend/tsconfig.tsbuildinfo
+pipeline/tsconfig.tsbuildinfo
+backend/tsconfig.tsbuildinfo

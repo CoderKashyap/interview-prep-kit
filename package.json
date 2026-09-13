@@ -1,0 +1,22 @@
+{
+  "name": "interview-prep-kit",
+  "private": true,
+  "workspaces": [
+    "pipeline",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "evaluate": "tsx pipeline/src/evaluate.ts",
+    "test": "npm test -w pipeline",
+    "dev:api": "npm run dev -w backend",
+    "dev:web": "npm run dev -w frontend",
+    "build": "npm run build -w pipeline && npm run build -w backend && npm run build -w frontend"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}
