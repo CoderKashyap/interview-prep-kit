@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { looksLikeHiringPage, scoreLink } from "../src/crawler.js";
+import { looksLikeAssetOrAccountUrl, looksLikeHiringPage, scoreLink } from "../src/crawler.js";
 import { cleanPage } from "../src/fetchPage.js";
 import { isInCrawlScope, registrableDomain, sameRegistrableOrigin } from "../src/urls.js";
 
@@ -36,4 +36,11 @@ test("footer and nav links are kept — careers often live there", () => {
   );
   assert.ok(page.links.some((href) => href.includes("about.gitlab.com")));
   assert.ok(page.links.some((href) => href.includes("/jobs/all-jobs")));
+});
+
+test("yaml, blob, and signup URLs are not crawl targets", () => {
+  assert.equal(looksLikeAssetOrAccountUrl("https://example.com/content/jobs/index.yml"), true);
+  assert.equal(looksLikeAssetOrAccountUrl("https://example.com/-/blob/main/jobs/index.yml"), true);
+  assert.equal(looksLikeAssetOrAccountUrl("https://example.com/-/registrations/new"), true);
+  assert.equal(looksLikeAssetOrAccountUrl("https://example.com/jobs/all-jobs/"), false);
 });

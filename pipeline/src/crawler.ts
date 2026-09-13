@@ -58,7 +58,18 @@ export function scoreLink(url: string, anchorText = ""): number {
     /* ignore */
   }
   if (/blog|news|press|legal|privacy|login|signup|cart|pricing/i.test(url)) score -= 4;
+  if (looksLikeAssetOrAccountUrl(url)) score -= 20;
   return score;
+}
+
+export function looksLikeAssetOrAccountUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (/\.(yml|yaml|json|xml|md|pdf|zip|png|jpe?g|gif|svg|css|js)$/i.test(parsed.pathname)) return true;
+    return /\/blob\/|\/raw\/|\/tree\/|registrations?|sign-?up|sign-?in|login/i.test(parsed.pathname);
+  } catch {
+    return true;
+  }
 }
 
 async function loadRobots(origin: string, allowPrivate: boolean) {
@@ -116,7 +127,7 @@ export async function crawlCompanySite(
   function enqueue(from: FetchedPage, depth: number): void {
     for (const href of from.links) {
       const absolute = resolveLink(from.url, href);
-      if (!absolute || !isInCrawlScope(absolute, companyUrl)) continue;
+      if (!absolute || !isInCrawlScope(absolute, companyUrl) || looksLikeAssetOrAccountUrl(absolute)) continue;
       const key = urlKey(absolute);
       if (seen.has(key)) continue;
       const score = scoreLink(absolute, href);

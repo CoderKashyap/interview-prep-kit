@@ -108,8 +108,6 @@ export function cleanPage(url: string, html: string, contentType = "text/html"):
     const href = $(el).attr("href");
     if (href) links.push(href);
   });
-  const embedded = html.match(/https?:\/\/[^\s"'<>\\]+/gi) ?? [];
-  for (const href of embedded.slice(0, 80)) links.push(href);
 
   $("script, style, noscript, svg, iframe, form").remove();
 

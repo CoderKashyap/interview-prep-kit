@@ -1,31 +1,45 @@
 import type { FetchedPage } from "./fetchPage.js";
 
 const CHROME_NOISE = /log ?in|sign ?in|password|cookie|privacy|register|subscribe/i;
+const SENTENCE_VERB =
+  /\b(is|are|was|were|has|have|helps?|lets?|use|uses|used|build|built|provide|provides|enable|enables|deliver|delivers|make|makes|do|does|can|will)\b/i;
 
 function proseFromText(text: string): string {
   const cleaned = text.replace(/\s+/g, " ").trim();
-  const parts = cleaned.split(/(?<=[.!?])\s+/).filter((sentence) => {
+  const parts = cleaned.split(/(?<=[.!])\s+/).filter((sentence) => {
     if (sentence.length < 50) return false;
+    if (looksLikeNavDump(sentence)) return false;
     if (CHROME_NOISE.test(sentence) && sentence.length < 120) return false;
+    if (!SENTENCE_VERB.test(sentence)) return false;
     return true;
   });
-  return parts.slice(0, 4).join(" ").slice(0, 700);
+  const joined = parts.slice(0, 4).join(" ").slice(0, 700);
+  return looksLikeNavDump(joined) ? "" : joined;
 }
 
 function pageScore(page: FetchedPage): number {
   const haystack = `${page.url} ${page.title}`;
   let score = Math.min(page.text.length / 200, 8);
   if (/about|company|handbook|mission/i.test(haystack)) score += 12;
-  if (/login|pricing|signup/i.test(haystack)) score -= 5;
+  if (/login|pricing|signup|jobs|careers/i.test(haystack)) score -= 5;
+  if (looksLikeNavDump(page.text.slice(0, 500))) score -= 10;
   return score;
 }
 
 export function looksLikeNavDump(text: string): boolean {
   const trimmed = text.replace(/\s+/g, " ").trim();
   if (trimmed.length < 40) return true;
-  const sentences = (trimmed.match(/[.!?]/g) ?? []).length;
-  if (CHROME_NOISE.test(trimmed) && sentences === 0) return true;
-  return sentences === 0 && trimmed.split(/\s+/).length > 12;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  const periods = (trimmed.match(/[.!]/g) ?? []).length;
+  const questions = (trimmed.match(/\?/g) ?? []).length;
+  if (CHROME_NOISE.test(trimmed) && periods === 0) return true;
+  if (periods === 0 && words.length > 12) return true;
+  if (questions >= 2 && periods < 2) return true;
+  const listMarks = (trimmed.match(/&|\//g) ?? []).length;
+  if (listMarks >= 6 && periods < 3) return true;
+  const titleish = words.filter((word) => /^[A-Z][A-Za-z0-9+-]*$/.test(word.replace(/[.,:;!?]+$/, ""))).length;
+  if (words.length > 20 && titleish / words.length > 0.5 && periods < 3) return true;
+  return false;
 }
 
 export function briefFromPages(
@@ -34,7 +48,8 @@ export function briefFromPages(
   companyName: string,
 ): { summary: string; what_they_do: string; sources: string[] } {
   const ranked = [...pages].sort((a, b) => pageScore(b) - pageScore(a));
-  const prose = ranked.map((page) => proseFromText(page.text)).find((text) => text.length > 80) ?? "";
+  const prose =
+    ranked.map((page) => proseFromText(page.text)).find((text) => text.length > 80 && !looksLikeNavDump(text)) ?? "";
   const name = companyName || (() => {
     try {
       return new URL(companyUrl).hostname.replace(/^www\./, "");

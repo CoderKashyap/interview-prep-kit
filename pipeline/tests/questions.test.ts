@@ -72,3 +72,24 @@ test("company brief fallback drops login-nav dumps", () => {
   assert.match(brief.what_they_do, /DevSecOps|software/i);
   assert.equal(/summarisation failed/i.test(brief.summary), false);
 });
+
+test("company brief fallback drops product-menu dumps", () => {
+  const dump =
+    "Suggestions GitLab Duo Agent Platform Code Suggestions (AI) CI/CD GitLab on AWS GitLab on Google Cloud Why GitLab? Platform Execution & Workflows CI/CD Source Code Management Agile delivery Security & Governance";
+  assert.equal(looksLikeNavDump(dump), true);
+  const brief = briefFromPages(
+    [
+      {
+        url: "https://about.gitlab.com/",
+        title: "About",
+        text: dump,
+        links: [],
+        contentType: "text/html",
+      },
+    ],
+    "https://about.gitlab.com/",
+    "",
+  );
+  assert.match(brief.what_they_do, /did not include a clear product paragraph/i);
+  assert.equal(/Duo Agent|Why GitLab/i.test(brief.what_they_do), false);
+});
