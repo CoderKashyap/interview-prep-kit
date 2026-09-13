@@ -109,7 +109,7 @@ export function cleanPage(url: string, html: string, contentType = "text/html"):
     if (href) links.push(href);
   });
 
-  $("script, style, noscript, svg, iframe, form").remove();
+  $("script, style, noscript, svg, iframe, form, nav, header, footer, aside").remove();
 
   const title = $("title").first().text().trim() || $("h1").first().text().trim();
   const text = $("body").text().replace(/\s+/g, " ").trim().slice(0, 20_000);

@@ -1,6 +1,8 @@
 import type { FetchedPage } from "./fetchPage.js";
 
 const CHROME_NOISE = /log ?in|sign ?in|password|cookie|privacy|register|subscribe/i;
+const MARKETING_CTA =
+  /register now|try for free|learn more|get started|what'?s new|join the \d+|start (a )?free trial/i;
 const SENTENCE_VERB =
   /\b(is|are|was|were|has|have|helps?|lets?|use|uses|used|build|built|provide|provides|enable|enables|deliver|delivers|make|makes|do|does|can|will)\b/i;
 
@@ -9,6 +11,7 @@ function proseFromText(text: string): string {
   const parts = cleaned.split(/(?<=[.!])\s+/).filter((sentence) => {
     if (sentence.length < 50) return false;
     if (looksLikeNavDump(sentence)) return false;
+    if (MARKETING_CTA.test(sentence)) return false;
     if (CHROME_NOISE.test(sentence) && sentence.length < 120) return false;
     if (!SENTENCE_VERB.test(sentence)) return false;
     return true;
@@ -17,12 +20,22 @@ function proseFromText(text: string): string {
   return looksLikeNavDump(joined) ? "" : joined;
 }
 
+function pagePath(url: string): string {
+  try {
+    return new URL(url).pathname.replace(/\/+$/, "") || "/";
+  } catch {
+    return "/";
+  }
+}
+
 function pageScore(page: FetchedPage): number {
-  const haystack = `${page.url} ${page.title}`;
-  let score = Math.min(page.text.length / 200, 8);
-  if (/about|company|handbook|mission/i.test(haystack)) score += 12;
-  if (/login|pricing|signup|jobs|careers/i.test(haystack)) score -= 5;
-  if (looksLikeNavDump(page.text.slice(0, 500))) score -= 10;
+  const path = pagePath(page.url);
+  let score = 0;
+  if (/\/(about|company|handbook|mission|who-we-are)\b/i.test(path)) score += 16;
+  if (path === "/") score -= 8;
+  if (/\/(jobs?|careers?|login|pricing|signup|contact|solutions)\b/i.test(path)) score -= 6;
+  if (looksLikeNavDump(page.text.slice(0, 800))) score -= 12;
+  if (proseFromText(page.text).length > 80) score += 10;
   return score;
 }
 
@@ -39,6 +52,8 @@ export function looksLikeNavDump(text: string): boolean {
   if (listMarks >= 6 && periods < 3) return true;
   const titleish = words.filter((word) => /^[A-Z][A-Za-z0-9+-]*$/.test(word.replace(/[.,:;!?]+$/, ""))).length;
   if (words.length > 20 && titleish / words.length > 0.5 && periods < 3) return true;
+  const ctas = trimmed.match(new RegExp(MARKETING_CTA.source, "gi")) ?? [];
+  if (ctas.length >= 2) return true;
   return false;
 }
 

@@ -93,3 +93,31 @@ test("company brief fallback drops product-menu dumps", () => {
   assert.match(brief.what_they_do, /did not include a clear product paragraph/i);
   assert.equal(/Duo Agent|Why GitLab/i.test(brief.what_they_do), false);
 });
+
+test("company brief prefers a company page over homepage banners", () => {
+  const homepage =
+    "Transcend returns on October 6. Register now Speed you can trust. Try for free Learn more 19.3 What's new in GitLab. Join the 50+ million people already using GitLab. Why GitLab?";
+  assert.equal(looksLikeNavDump(homepage), true);
+  const brief = briefFromPages(
+    [
+      {
+        url: "https://about.gitlab.com/",
+        title: "The DevSecOps Platform",
+        text: homepage,
+        links: [],
+        contentType: "text/html",
+      },
+      {
+        url: "https://about.gitlab.com/company/",
+        title: "Company",
+        text: "GitLab is The DevSecOps Platform. Teams use it to deliver software faster with a single application for the entire software lifecycle.",
+        links: [],
+        contentType: "text/html",
+      },
+    ],
+    "https://about.gitlab.com/",
+    "",
+  );
+  assert.match(brief.what_they_do, /DevSecOps|software lifecycle/i);
+  assert.equal(/Register now|Try for free|What'?s new/i.test(brief.what_they_do), false);
+});
