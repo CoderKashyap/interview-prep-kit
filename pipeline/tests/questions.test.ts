@@ -121,3 +121,23 @@ test("company brief prefers a company page over homepage banners", () => {
   assert.match(brief.what_they_do, /DevSecOps|software lifecycle/i);
   assert.equal(/Register now|Try for free|What'?s new/i.test(brief.what_they_do), false);
 });
+
+test("company brief drops a chip list stuck in front of real copy", () => {
+  const mixed =
+    "Suggestions GitLab Duo Agent Platform Code Suggestions (AI) CI/CD GitLab on AWS GitLab on Google Cloud Why GitLab? About GitLab Behind the scenes of the intelligent orchestration platform What we do We're the people behind GitLab, the intelligent orchestration platform where teams and their AI agents ship secure software faster. What started in 2011 as an open source project to help one team of programmers collaborate is now used by millions of people.";
+  const brief = briefFromPages(
+    [
+      {
+        url: "https://about.gitlab.com/company/",
+        title: "Company",
+        text: mixed,
+        links: [],
+        contentType: "text/html",
+      },
+    ],
+    "https://about.gitlab.com/",
+    "",
+  );
+  assert.match(brief.what_they_do, /people behind GitLab|2011|open source/i);
+  assert.equal(/Suggestions|Duo Agent|Why GitLab\?/i.test(brief.what_they_do), false);
+});

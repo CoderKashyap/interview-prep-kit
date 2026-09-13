@@ -4,11 +4,28 @@ const CHROME_NOISE = /log ?in|sign ?in|password|cookie|privacy|register|subscrib
 const MARKETING_CTA =
   /register now|try for free|learn more|get started|what'?s new|join the \d+|start (a )?free trial/i;
 const SENTENCE_VERB =
-  /\b(is|are|was|were|has|have|helps?|lets?|use|uses|used|build|built|provide|provides|enable|enables|deliver|delivers|make|makes|do|does|can|will)\b/i;
+  /\b(is|are|was|were|has|have|helps?|lets?|use|uses|used|build|built|provide|provides|enable|enables|deliver|delivers|make|makes|do|does|can|will)|(?:^|\s)we(?:'re| are)\b/i;
+
+const PROSE_START =
+  /\b(What we do|Who we are|About us|We(?:'re| are)|What started|Since (?:the|our)\b|[A-Z][A-Za-z0-9.+-]{2,} is )\b/;
+
+function dropLeadingChips(text: string): string {
+  const match = text.match(PROSE_START);
+  if (!match || match.index == null) return text;
+  let rest = text.slice(match.index);
+  rest = rest.replace(/^(What we do|Who we are|About us)\s+/i, "");
+  return rest.trim() || text;
+}
+
+function stripChipPrefix(sentence: string): string {
+  const cut = sentence.search(PROSE_START);
+  if (cut > 24) return sentence.slice(cut).replace(/^(What we do|Who we are|About us)\s+/i, "");
+  return sentence;
+}
 
 function proseFromText(text: string): string {
-  const cleaned = text.replace(/\s+/g, " ").trim();
-  const parts = cleaned.split(/(?<=[.!])\s+/).filter((sentence) => {
+  const cleaned = dropLeadingChips(text.replace(/\s+/g, " ").trim());
+  const parts = cleaned.split(/(?<=[.!])\s+/).map(stripChipPrefix).filter((sentence) => {
     if (sentence.length < 50) return false;
     if (looksLikeNavDump(sentence)) return false;
     if (MARKETING_CTA.test(sentence)) return false;
