@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: interview-prep-api
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build -w pipeline && npm run build -w backend
+    startCommand: npm run start -w backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: ALLOW_PRIVATE_URLS
+        value: "false"
