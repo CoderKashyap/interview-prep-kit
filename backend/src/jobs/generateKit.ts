@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { ZodError } from "zod";
 import { PipelineError, runPipeline } from "pipeline";
 import { config } from "../config.js";
 import { KitModel } from "../models/Kit.js";
@@ -54,7 +55,12 @@ async function runJob(kitId: string): Promise<void> {
     });
   } catch (error) {
     const code = error instanceof PipelineError ? error.code : "PIPELINE_FAILED";
-    const message = error instanceof Error ? error.message : "Generation failed.";
+    const message =
+      error instanceof ZodError
+        ? "The model returned a kit that failed structure checks. Try generating again."
+        : error instanceof Error
+          ? error.message
+          : "Generation failed.";
     await KitModel.findByIdAndUpdate(kitId, {
       status: "failed",
       error: { code, message },

@@ -2,8 +2,17 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { generateFlashcards, generateQuestionsForCategory } from "../src/generate.js";
 import { briefFromPages, looksLikeNavDump } from "../src/brief.js";
-import { buildQuestion, studyAnswer, topicLabel } from "../src/questions.js";
+import { buildQuestion, clampDifficulty, studyAnswer, topicLabel } from "../src/questions.js";
 import { req } from "./helpers.js";
+
+test("difficulty from the model is coerced to 1, 2, or 3", () => {
+  assert.equal(clampDifficulty(2), 2);
+  assert.equal(clampDifficulty("3"), 3);
+  assert.equal(clampDifficulty("easy"), 1);
+  assert.equal(clampDifficulty("hard"), 3);
+  assert.equal(clampDifficulty(Number.NaN, 2), 2);
+  assert.equal(clampDifficulty(undefined, 2), 2);
+});
 
 test("questions are interviewer prompts, not JD pastes", () => {
   const requirement = req({

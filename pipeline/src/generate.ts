@@ -3,7 +3,7 @@ import { briefFromPages, looksLikeNavDump } from "./brief.js";
 import { pagesToContext } from "./crawler.js";
 import { allocateIds, nextId } from "./ids.js";
 import { ISOLATION_PREAMBLE, generateJson, hasLlmCredentials } from "./llm.js";
-import { buildFlashcard, buildQuestion } from "./questions.js";
+import { buildFlashcard, buildQuestion, clampDifficulty } from "./questions.js";
 import type { Question, QuestionCategory, Requirement } from "./types.js";
 
 export async function generateCompanyBrief(input: {
@@ -100,7 +100,7 @@ export async function generateQuestionsForCategory(input: {
         requirement_ids: string[];
         prompt: string;
         answer_outline: string;
-        difficulty: 1 | 2 | 3;
+        difficulty?: unknown;
       }>;
     }>([
       { role: "system", content: ISOLATION_PREAMBLE },
@@ -136,7 +136,7 @@ export async function generateQuestionsForCategory(input: {
       category: input.category,
       prompt: q.prompt.trim(),
       answer_outline: q.answer_outline.trim(),
-      difficulty: q.difficulty,
+      difficulty: clampDifficulty(q.difficulty, input.category === "system-design" ? 3 : 2),
     })).filter((q) => q.requirement_ids.length > 0 || input.requirements.length === 0);
   } catch {
     return fallback;

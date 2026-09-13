@@ -1,5 +1,16 @@
 import type { Question, QuestionCategory, Requirement } from "./types.js";
 
+export function clampDifficulty(value: unknown, fallback: 1 | 2 | 3 = 2): 1 | 2 | 3 {
+  if (value === 1 || value === 2 || value === 3) return value;
+  if (value == null || (typeof value === "number" && !Number.isFinite(value))) return fallback;
+  const numeric = typeof value === "number" ? value : Number(String(value).trim());
+  if (numeric === 1 || numeric === 2 || numeric === 3) return numeric;
+  const label = String(value).toLowerCase();
+  if (/\b(easy|low|beginner)\b/.test(label)) return 1;
+  if (/\b(hard|high|advanced)\b/.test(label)) return 3;
+  return fallback;
+}
+
 /** First clause of the requirement — taken from the posting, not a canned topic list. */
 export function topicLabel(text: string): string {
   const compact = text.replace(/\s+/g, " ").trim();
